@@ -403,7 +403,7 @@ class _TeacherAllState extends State<TeacherAll> {
                                       SizedBox(width: 4),
                                       Expanded(
                                         child: Text(
-                                          '${item['point']} points',
+                                          '${(item['point'] == 0) ? 'Free' : '${item['point']} points'}',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: GoogleFonts.manrope(

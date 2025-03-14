@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:my_education/models/class_sharing.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyInterestsScreen extends StatefulWidget {
   const MyInterestsScreen({super.key});
@@ -218,136 +221,206 @@ class _MyInterestsScreenState extends State<MyInterestsScreen> {
         child: Column(
           children: [
             ...bookings.map((item) {
+              bool isPastSession =
+                  isSessionPast(item['date'] ?? '', item['endTime'] ?? '');
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 4,
-                  shadowColor: Colors.grey.shade200,
-                  child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Image (2/5 of the total width)
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width *
-                                0.4, // Explicit width
-                            child: Container(
-                              height: MediaQuery.of(context).size.width *
-                                  0.4, // Square image
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(8),
-                                image: DecorationImage(
-                                  image: NetworkImage(item['imagePath']),
-                                  fit: BoxFit.fill,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            SharingClassDetailPage(data: item),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 4,
+                    shadowColor: Colors.grey.shade200,
+                    child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Image (2/5 of the total width)
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width *
+                                  0.4, // Explicit width
+                              child: Container(
+                                height: MediaQuery.of(context).size.width *
+                                    0.4, // Square image
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(8),
+                                  image: DecorationImage(
+                                    image: NetworkImage(item['imagePath']),
+                                    fit: BoxFit.fill,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
+                            const SizedBox(width: 12),
 
-                          // Content (Remaining 3/5 width)
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Title
-                                Text(
-                                  item['name'] ?? 'Unknown Name',
-                                  style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                    color: const Color(0xFF171A1F),
+                            // Content (Remaining 3/5 width)
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Title
+                                  Text(
+                                    item['name'] ?? 'Unknown Name',
+                                    style: GoogleFonts.poppins(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                      color: const Color(0xFF171A1F),
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 5),
+                                  const SizedBox(height: 5),
 
-                                // Date
-                                Row(
-                                  children: [
-                                    const Icon(Icons.calendar_today,
-                                        size: 16, color: Colors.black),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      item['date'] ?? 'Unknown Date',
-                                      style: GoogleFonts.manrope(
-                                          fontSize: 12, color: Colors.black),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
+                                  // Date
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.calendar_today,
+                                          size: 16, color: Colors.black),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        item['date'] ?? 'Unknown Date',
+                                        style: GoogleFonts.manrope(
+                                            fontSize: 12, color: Colors.black),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
 
-                                // Time
-                                Row(
-                                  children: [
-                                    const Icon(Icons.access_time,
-                                        size: 16, color: Colors.black),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      '${item['startTime']} - ${item['endTime']}',
-                                      style: GoogleFonts.manrope(
-                                          fontSize: 12, color: Colors.black),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
+                                  // Time
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.access_time,
+                                          size: 16, color: Colors.black),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '${item['startTime']} - ${item['endTime']}',
+                                        style: GoogleFonts.manrope(
+                                            fontSize: 12, color: Colors.black),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
 
-                                // Link
-                                Row(
-                                  children: [
-                                    const Icon(Icons.link,
-                                        size: 16, color: Colors.black),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: GestureDetector(
-                                        onTap: () {
-                                          // Implement your link action
-                                        },
-                                        child: Text(
-                                          item['link'] ?? 'No Link',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.manrope(
-                                            fontSize: 12,
-                                            color: Colors.blue,
-                                            decoration:
-                                                TextDecoration.underline,
+                                  // Link
+                                  Row(
+                                    children: [
+                                      Icon(
+                                          isPastSession
+                                              ? Icons.video_library
+                                              : Icons.link,
+                                          size: 16,
+                                          color: Colors.black),
+                                      const SizedBox(width: 6),
+                                      Expanded(
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            // For past sessions, use recording link; otherwise use meeting link
+                                            String? linkText = isPastSession
+                                                ? (item['recording'] ?? '')
+                                                : (item['link'] ?? '');
+
+                                            if (linkText!.isNotEmpty) {
+                                              Clipboard.setData(ClipboardData(
+                                                  text: linkText));
+                                              ScaffoldMessenger.of(context)
+                                                  .showSnackBar(
+                                                SnackBar(
+                                                    content: Text(isPastSession
+                                                        ? 'Recording link copied to clipboard!'
+                                                        : 'Link copied to clipboard!')),
+                                              );
+                                            }
+                                          },
+                                          child: Text(
+                                            isPastSession
+                                                ? (item['recording'] != null &&
+                                                        item['recording']
+                                                            .isNotEmpty
+                                                    ? item['recording']
+                                                    : 'No Recording')
+                                                : (item['link'] ?? 'No Link'),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.manrope(
+                                              fontSize: 12,
+                                              color: Colors.blue,
+                                              decoration:
+                                                  TextDecoration.underline,
+                                            ),
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 5),
-
-                                // Join button (only for upcoming sessions)
-                                if (!isSessionPast(
-                                    item['date'] ?? '', item['endTime'] ?? ''))
-                                  ElevatedButton(
-                                    onPressed: () {
-                                      // Implement join action
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 20, vertical: 5),
-                                    ),
-                                    child: const Text(
-                                      'Join',
-                                      style: TextStyle(color: Colors.white),
-                                    ),
+                                    ],
                                   ),
-                              ],
+                                  const SizedBox(height: 5),
+
+                                  // Join button (only for upcoming sessions)
+                                  if (!isPastSession)
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        _launchURL(item['link']);
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: (item['link'] !=
+                                                    null &&
+                                                item['link'].isNotEmpty)
+                                            ? Colors
+                                                .green // Green when recording exists
+                                            : Colors.grey,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 5),
+                                      ),
+                                      child: const Text(
+                                        'Join',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                  if (isPastSession)
+                                    ElevatedButton(
+                                      onPressed: () {
+                                        if (item['recording'] != null &&
+                                            item['recording'].isNotEmpty) {
+                                          _launchURL(item['recording']);
+                                        }
+                                      },
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: (item['recording'] !=
+                                                    null &&
+                                                item['recording'].isNotEmpty)
+                                            ? Colors
+                                                .red // Green when recording exists
+                                            : Colors.grey,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 20, vertical: 5),
+                                      ),
+                                      child: const Text(
+                                        'View Recording',
+                                        style: TextStyle(color: Colors.white),
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      )),
+                          ],
+                        )),
+                  ),
                 ),
               );
             }).toList(),
@@ -355,6 +428,17 @@ class _MyInterestsScreenState extends State<MyInterestsScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _launchURL(String url) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        throw 'Could not launch $url';
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
   }
 
   @override

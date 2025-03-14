@@ -3,8 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:my_education/models/class_sharing.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MySessionsScreen extends StatefulWidget {
   const MySessionsScreen({super.key});
@@ -219,15 +222,29 @@ class _MySessionsScreenState extends State<MySessionsScreen> {
         child: Column(
           children: [
             ...bookings.map((item) {
+              // Determine if session is past
+              bool isPastSession =
+                  isSessionPast(item['date'] ?? '', item['endTime'] ?? '');
+
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 4,
-                  shadowColor: Colors.grey.shade200,
-                  child: Padding(
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            SharingClassDetailPage(data: item),
+                      ),
+                    );
+                  },
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 4,
+                    shadowColor: Colors.grey.shade200,
+                    child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -296,19 +313,44 @@ class _MySessionsScreenState extends State<MySessionsScreen> {
                                 ),
                                 const SizedBox(height: 4),
 
-                                // Link
+                                // Link row - show meeting link for upcoming, recording link for past
                                 Row(
                                   children: [
-                                    const Icon(Icons.link,
-                                        size: 16, color: Colors.black),
+                                    Icon(
+                                        isPastSession
+                                            ? Icons.video_library
+                                            : Icons.link,
+                                        size: 16,
+                                        color: Colors.black),
                                     const SizedBox(width: 6),
                                     Expanded(
                                       child: GestureDetector(
                                         onTap: () {
-                                          // Implement your link action
+                                          // For past sessions, use recording link; otherwise use meeting link
+                                          String? linkText = isPastSession
+                                              ? (item['recording'] ?? '')
+                                              : (item['link'] ?? '');
+
+                                          if (linkText!.isNotEmpty) {
+                                            Clipboard.setData(
+                                                ClipboardData(text: linkText));
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                  content: Text(isPastSession
+                                                      ? 'Recording link copied to clipboard!'
+                                                      : 'Link copied to clipboard!')),
+                                            );
+                                          }
                                         },
                                         child: Text(
-                                          item['link'] ?? 'No Link',
+                                          isPastSession
+                                              ? (item['recording'] != null &&
+                                                      item['recording']
+                                                          .isNotEmpty
+                                                  ? item['recording']
+                                                  : 'No Recording')
+                                              : (item['link'] ?? 'No Link'),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                           style: GoogleFonts.manrope(
@@ -325,11 +367,16 @@ class _MySessionsScreenState extends State<MySessionsScreen> {
                                 const SizedBox(height: 5),
 
                                 // Join button (only for upcoming sessions)
-                                if (!isSessionPast(
-                                    item['date'] ?? '', item['endTime'] ?? ''))
+                                if (!isPastSession)
                                   ElevatedButton(
                                     onPressed: () {
-                                      // Implement join action
+                                      if (item['link'] != null &&
+                                          item['link'].isNotEmpty) {
+                                        _launchURL(item['link']);
+                                      } else {
+                                        _showAddLinkDialog(
+                                            context, item, 'link');
+                                      }
                                     },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.green,
@@ -339,8 +386,40 @@ class _MySessionsScreenState extends State<MySessionsScreen> {
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 20, vertical: 5),
                                     ),
-                                    child: const Text(
-                                      'Join',
+                                    child: Text(
+                                      item['link'] != null &&
+                                              item['link'].isNotEmpty
+                                          ? 'Join'
+                                          : 'Add Link',
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+
+                                // Recording Button (only for past sessions)
+                                if (isPastSession)
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      if (item['recording'] != null &&
+                                          item['recording'].isNotEmpty) {
+                                        _launchURL(item['recording']);
+                                      } else {
+                                        _showAddLinkDialog(
+                                            context, item, 'recording');
+                                      }
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 20, vertical: 5),
+                                    ),
+                                    child: Text(
+                                      item['recording'] != null &&
+                                              item['recording'].isNotEmpty
+                                          ? 'View Recording'
+                                          : 'Add Recording',
                                       style: TextStyle(color: Colors.white),
                                     ),
                                   ),
@@ -348,7 +427,9 @@ class _MySessionsScreenState extends State<MySessionsScreen> {
                             ),
                           ),
                         ],
-                      )),
+                      ),
+                    ),
+                  ),
                 ),
               );
             }).toList(),
@@ -356,6 +437,141 @@ class _MySessionsScreenState extends State<MySessionsScreen> {
         ),
       ),
     );
+  }
+
+  void _showAddLinkDialog(
+      BuildContext context, Map<String, dynamic> item, String linkType) {
+    TextEditingController linkController = TextEditingController();
+    String? errorMessage;
+
+    // Determine dialog title based on link type
+    String dialogTitle =
+        linkType == 'recording' ? "Add Recording Link" : "Add Meeting Link";
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    child: SingleChildScrollView(
+                      reverse: true, // Keeps field visible when keyboard opens
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 20),
+                            Text(
+                              dialogTitle,
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 10),
+                            TextField(
+                              controller: linkController,
+                              decoration: InputDecoration(
+                                hintText: linkType == 'recording'
+                                    ? "Enter recording link"
+                                    : "Enter meeting link",
+                                errorText:
+                                    errorMessage, // Shows error below field
+                              ),
+                            ),
+                            const SizedBox(
+                                height: 5), // Space for error message
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text("Cancel"),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    String enteredLink =
+                                        linkController.text.trim();
+                                    if (_isValidMeetingLink(enteredLink)) {
+                                      try {
+                                        // Update Firebase
+                                        String sessionType =
+                                            item['type'] ?? 'sharing';
+                                        String dbPath =
+                                            '$sessionType/${item['id']}/$linkType';
+                                        DatabaseReference sessionRef =
+                                            FirebaseDatabase.instance
+                                                .ref(dbPath);
+
+                                        await sessionRef.set(
+                                            enteredLink); // Set link in Firebase
+
+                                        await _fetchSharingClassData();
+
+                                        if (mounted) {
+                                          setState(() {}); // Ensure UI updates
+                                        }
+
+                                        Navigator.pop(context);
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                              content: Text(linkType ==
+                                                      'recording'
+                                                  ? "Recording link added successfully!"
+                                                  : "Link added successfully!")),
+                                        );
+                                      } catch (e) {
+                                        setDialogState(() {
+                                          errorMessage =
+                                              "Failed to add link. Try again.";
+                                        });
+                                      }
+                                    } else {
+                                      setDialogState(() {
+                                        errorMessage = "Invalid link!";
+                                      });
+                                    }
+                                  },
+                                  child: const Text("Add"),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  bool _isValidMeetingLink(String url) {
+    return Uri.tryParse(url)?.hasAbsolutePath ?? false;
+  }
+
+  Future<void> _launchURL(String url) async {
+    try {
+      final Uri uri = Uri.parse(url);
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        throw 'Could not launch $url';
+      }
+    } catch (e) {
+      print('Error: $e');
+    }
   }
 
   @override

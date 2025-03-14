@@ -660,7 +660,7 @@ class _HomePageState extends State<HomePage> {
                                                   children: [
                                                     Icon(
                                                       Icons.calendar_today,
-                                                      color: Colors.black,
+                                                      color: Colors.grey[600],
                                                       size: 16,
                                                     ),
                                                     SizedBox(width: 4),
@@ -675,7 +675,8 @@ class _HomePageState extends State<HomePage> {
                                                           fontWeight:
                                                               FontWeight.w400,
                                                           fontSize: 12,
-                                                          color: Colors.black,
+                                                          color:
+                                                              Colors.grey[600],
                                                         ),
                                                       ),
                                                     ),
@@ -690,7 +691,7 @@ class _HomePageState extends State<HomePage> {
                                                   children: [
                                                     Icon(
                                                       Icons.access_time,
-                                                      color: Colors.black,
+                                                      color: Colors.grey[600],
                                                       size: 16,
                                                     ),
                                                     SizedBox(width: 4),
@@ -705,7 +706,8 @@ class _HomePageState extends State<HomePage> {
                                                           fontWeight:
                                                               FontWeight.w400,
                                                           fontSize: 12,
-                                                          color: Colors.black,
+                                                          color:
+                                                              Colors.grey[600],
                                                         ),
                                                       ),
                                                     ),
@@ -721,13 +723,13 @@ class _HomePageState extends State<HomePage> {
                                                     Icon(
                                                       Icons
                                                           .attach_money_rounded,
-                                                      color: Colors.black,
+                                                      color: Colors.grey[600],
                                                       size: 16,
                                                     ),
                                                     SizedBox(width: 4),
                                                     Expanded(
                                                       child: Text(
-                                                        '${item['point']} points',
+                                                        '${(item['point'] == 0) ? 'Free' : '${item['point']} points'}',
                                                         maxLines: 1,
                                                         overflow: TextOverflow
                                                             .ellipsis,
@@ -736,7 +738,8 @@ class _HomePageState extends State<HomePage> {
                                                           fontWeight:
                                                               FontWeight.w400,
                                                           fontSize: 12,
-                                                          color: Colors.black,
+                                                          color:
+                                                              Colors.grey[600],
                                                         ),
                                                       ),
                                                     ),
