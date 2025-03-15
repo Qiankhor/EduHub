@@ -16,7 +16,8 @@ class QuizSubjectPage extends StatefulWidget {
 }
 
 class _QuizSubjectPageState extends State<QuizSubjectPage> {
-  final DatabaseReference _quizRef = FirebaseDatabase.instance.ref().child('quiz');
+  final DatabaseReference _quizRef =
+      FirebaseDatabase.instance.ref().child('quiz');
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   Map<String, List<QuizSet>> quizSetsByCategory = {};
@@ -32,10 +33,12 @@ class _QuizSubjectPageState extends State<QuizSubjectPage> {
 
   Future<void> _fetchQuizData() async {
     try {
-      DataSnapshot categorySnapshot = await _quizRef.child(widget.categoryName).get();
+      DataSnapshot categorySnapshot =
+          await _quizRef.child(widget.categoryName).get();
 
       if (categorySnapshot.exists) {
-        Map<dynamic, dynamic> subjectsData = categorySnapshot.value as Map<dynamic, dynamic>;
+        Map<dynamic, dynamic> subjectsData =
+            categorySnapshot.value as Map<dynamic, dynamic>;
 
         List<QuizSet> fetchedQuizSets = [];
         Set<String> uniqueSubjects = {}; // To keep track of unique subjects
@@ -44,28 +47,29 @@ class _QuizSubjectPageState extends State<QuizSubjectPage> {
           String subjectName = subjectEntry.key;
           uniqueSubjects.add(subjectName); // Add subject to set
 
-          Map<dynamic, dynamic> setsData = subjectEntry.value as Map<dynamic, dynamic>;
+          Map<dynamic, dynamic> setsData =
+              subjectEntry.value as Map<dynamic, dynamic>;
 
           for (var setEntry in setsData.entries) {
             String setName = setEntry.key;
-            Map<dynamic, dynamic> setData = setEntry.value as Map<dynamic, dynamic>;
+            Map<dynamic, dynamic> setData =
+                setEntry.value as Map<dynamic, dynamic>;
 
             if (setName.contains('Set ') &&
-                (setData.containsKey('approve') ? setData['approve'] != false : true)) {
-              
-              String? providerId = setData['provider'] as String?;
+                (setData.containsKey('approve')
+                    ? setData['approve'] != false
+                    : true)) {
+              String? providerId = setData['provider'] as String;
               String providerName = 'Unknown';
-              
-              if (providerId != null) {
-                DocumentSnapshot providerSnapshot =
-                    await _firestore.collection('users').doc(providerId).get();
-                Map<String, dynamic>? providerData =
-                    providerSnapshot.data() as Map<String, dynamic>?;
 
-                providerName = providerSnapshot.exists
-                    ? (providerData?['fullName'] ?? 'Unknown')
-                    : 'Unknown';
-              }
+              DocumentSnapshot providerSnapshot =
+                  await _firestore.collection('users').doc(providerId).get();
+              Map<String, dynamic>? providerData =
+                  providerSnapshot.data() as Map<String, dynamic>?;
+
+              providerName = providerSnapshot.exists
+                  ? (providerData?['fullName'] ?? 'Unknown')
+                  : 'Unknown';
 
               fetchedQuizSets.add(
                 QuizSet(
@@ -75,6 +79,7 @@ class _QuizSubjectPageState extends State<QuizSubjectPage> {
                   questionsCount: setData.length,
                   providerName: providerName,
                   setData: setData,
+                  providerId: providerId,
                 ),
               );
             }
@@ -85,7 +90,6 @@ class _QuizSubjectPageState extends State<QuizSubjectPage> {
           quizSets = fetchedQuizSets;
           subjects = uniqueSubjects.toList(); // Convert set to list for buttons
         });
-
       } else {
         print('No subjects found for this category.');
       }
@@ -98,18 +102,23 @@ class _QuizSubjectPageState extends State<QuizSubjectPage> {
   Widget build(BuildContext context) {
     // Filter quiz sets based on selected subject
     List<QuizSet> displayedQuizSets = selectedSubject == null
-    ? quizSets.where((quizSet) {
-        // Filter out subjects that have no approved sets
-        return quizSets.any((set) => set.subjectName == quizSet.subjectName && set.setData['approve'] != false);
-      }).toList()
-    : quizSets.where((quizSet) => 
-        quizSet.subjectName == selectedSubject && quizSet.setData['approve'] != false).toList();
-
+        ? quizSets.where((quizSet) {
+            // Filter out subjects that have no approved sets
+            return quizSets.any((set) =>
+                set.subjectName == quizSet.subjectName &&
+                set.setData['approve'] != false);
+          }).toList()
+        : quizSets
+            .where((quizSet) =>
+                quizSet.subjectName == selectedSubject &&
+                quizSet.setData['approve'] != false)
+            .toList();
 
     return Scaffold(
-      appBar:  AppBar(
+      appBar: AppBar(
         centerTitle: true,
-        title: Text('${widget.categoryName} subjects', style: GoogleFonts.poppins()),
+        title: Text('${widget.categoryName} subjects',
+            style: GoogleFonts.poppins()),
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
@@ -121,40 +130,40 @@ class _QuizSubjectPageState extends State<QuizSubjectPage> {
         children: [
           SizedBox(height: 16),
           // Subject selection buttons
-         Row(
-  children: [
-    SizedBox(width: 16),
-    Text('Subject', style: TextStyle(fontWeight: FontWeight.bold)),
-    SizedBox(width: 16),
-    Expanded(  // Wrap SingleChildScrollView with Expanded
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: subjects
-              .where((subject) {
-                // Only include subjects with at least one approved set
-                return quizSets.any((quizSet) => 
-                  quizSet.subjectName == subject && quizSet.setData['approve'] != false);
-              })
-              .map((subject) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                  child: ChoiceChip(
-                    label: Text(subject),
-                    selected: selectedSubject == subject,
-                    onSelected: (isSelected) {
-                      setState(() {
-                        selectedSubject = isSelected ? subject : null;
-                      });
-                    },
+          Row(
+            children: [
+              SizedBox(width: 16),
+              Text('Subject', style: TextStyle(fontWeight: FontWeight.bold)),
+              SizedBox(width: 16),
+              Expanded(
+                // Wrap SingleChildScrollView with Expanded
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: subjects.where((subject) {
+                      // Only include subjects with at least one approved set
+                      return quizSets.any((quizSet) =>
+                          quizSet.subjectName == subject &&
+                          quizSet.setData['approve'] != false);
+                    }).map((subject) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                        child: ChoiceChip(
+                          label: Text(subject),
+                          selected: selectedSubject == subject,
+                          onSelected: (isSelected) {
+                            setState(() {
+                              selectedSubject = isSelected ? subject : null;
+                            });
+                          },
+                        ),
+                      );
+                    }).toList(),
                   ),
-                );
-              }).toList(),
-        ),
-      ),
-    ),
-  ],
-),
+                ),
+              ),
+            ],
+          ),
           SizedBox(height: 16),
           Expanded(
             child: displayedQuizSets.isEmpty
@@ -171,16 +180,17 @@ class _QuizSubjectPageState extends State<QuizSubjectPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: (){
-          Navigator.push(context, MaterialPageRoute(builder: (context)=>RobotChatPage()));
+        onPressed: () {
+          Navigator.push(context,
+              MaterialPageRoute(builder: (context) => RobotChatPage()));
         },
         shape: CircleBorder(),
         backgroundColor: Colors.orange.shade700,
-        child: Padding(  
+        child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Image.asset('images/robot.png'),
         ),
-        ),
+      ),
     );
   }
 }
@@ -207,7 +217,7 @@ class QuizSetCard extends StatelessWidget {
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 8),
-            Text('Total questions: ${quizSet.questionsCount -3}'),
+            Text('Total questions: ${quizSet.questionsCount - 3}'),
             SizedBox(height: 16),
             Align(
               alignment: Alignment.center,
@@ -220,7 +230,10 @@ class QuizSetCard extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (context)=>QuizPage(quizSet: quizSet)));
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => QuizPage(quizSet: quizSet)));
                 },
                 child: Text('Attempt Now'),
               ),

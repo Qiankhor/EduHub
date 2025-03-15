@@ -165,6 +165,34 @@ class _PromotionalEventPageState extends State<PromotionalEventPage> {
       // Fetch the provider's name and send the chat message
       String providerName = await _getProviderName(providerId);
 
+      DocumentReference userRef =
+          FirebaseFirestore.instance.collection('users').doc(providerId);
+      CollectionReference transactionRef = userRef.collection('transactions');
+
+// Perform transaction to update points and save history
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        DocumentSnapshot snapshot = await transaction.get(userRef);
+        int currentPoints = 0;
+        if (snapshot.exists) {
+          currentPoints = snapshot['points'] ?? 0;
+          transaction.update(userRef, {'points': currentPoints + 100});
+        } else {
+          transaction.set(userRef, {'points': 100});
+        }
+
+        // Create a document reference for the new transaction record
+        DocumentReference newTransactionRef =
+            transactionRef.doc(); // Generate a new document ID
+
+        // Add the transaction record as part of the transaction
+        transaction.set(newTransactionRef, {
+          'points': 100,
+          'type': 'addition', // or 'deduction' for deductions
+          'reason': 'Reject event',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      });
+
       // Prepare a detailed rejection message
       String message = '''
 Your submission of the event has been rejected.

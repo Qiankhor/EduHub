@@ -90,7 +90,8 @@ class _QuizCategoryPageState extends State<QuizCategoryPage> {
                       providerName: providerName,
                       setData: setData,
                       totalSetCount: 0, // This can be adjusted later
-                      totalSubjectCount: 0, // Initialize totalSubjectCount
+                      totalSubjectCount: 0,
+                      providerId: providerId, // Initialize totalSubjectCount
                     ),
                   );
                 }

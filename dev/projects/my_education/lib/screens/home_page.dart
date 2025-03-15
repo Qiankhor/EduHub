@@ -546,6 +546,8 @@ class _HomePageState extends State<HomePage> {
                                 height: 1.6,
                                 color: Color(0xFF171A1F),
                               ),
+                              softWrap: true,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ),

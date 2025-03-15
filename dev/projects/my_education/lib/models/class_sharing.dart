@@ -69,15 +69,52 @@ class _SharingClassPageState extends State<SharingClassDetailPage> {
         .collection('users')
         .doc(widget.data['provider']);
 
-    await FirebaseFirestore.instance.runTransaction((transaction) async {
-      DocumentSnapshot snapshot = await transaction.get(userRef);
-      DocumentSnapshot snapshot2 = await transaction.get(providerRef);
+    // Create references to the transactions subcollections
+    CollectionReference userTransactions = userRef.collection('transactions');
+    CollectionReference providerTransactions =
+        providerRef.collection('transactions');
 
-      if (snapshot.exists && snapshot2.exists) {
-        int currentUserPoints = snapshot['points'] ?? 0;
+    // First get the current user's name
+    DocumentSnapshot userSnapshot = await userRef.get();
+    String userName = 'Unknown';
+
+    if (userSnapshot.exists) {
+      Map<String, dynamic>? userData =
+          userSnapshot.data() as Map<String, dynamic>?;
+      userName = userData?['fullName'] ?? 'Unknown';
+    }
+
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      DocumentSnapshot userSnapshot = await transaction.get(userRef);
+      DocumentSnapshot providerSnapshot = await transaction.get(providerRef);
+
+      if (userSnapshot.exists && providerSnapshot.exists) {
+        // Update user points (deduction)
+        int currentUserPoints = userSnapshot['points'] ?? 0;
         transaction.update(userRef, {'points': currentUserPoints - points});
-        int tutorPoints = snapshot2['points'] ?? 0;
+
+        // Update provider points (addition)
+        int tutorPoints = providerSnapshot['points'] ?? 0;
         transaction.update(providerRef, {'points': tutorPoints + points});
+
+        // Create a new transaction document for the user (deduction)
+        DocumentReference newUserTransactionRef = userTransactions.doc();
+        transaction.set(newUserTransactionRef, {
+          'points': points,
+          'type': 'deduction',
+          'reason': 'Join "${widget.data['name']}"',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+
+        // Create a new transaction document for the provider (addition)
+        DocumentReference newProviderTransactionRef =
+            providerTransactions.doc();
+        transaction.set(newProviderTransactionRef, {
+          'points': points,
+          'type': 'addition',
+          'reason': '$userName joined "${widget.data['name']}"',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
       }
     });
   }

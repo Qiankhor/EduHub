@@ -389,7 +389,7 @@ class _MySessionsScreenState extends State<MySessionsScreen> {
                                     child: Text(
                                       item['link'] != null &&
                                               item['link'].isNotEmpty
-                                          ? 'Join'
+                                          ? 'Join (${item['joinedParticipants']} joined)'
                                           : 'Add Link',
                                       style: TextStyle(color: Colors.white),
                                     ),

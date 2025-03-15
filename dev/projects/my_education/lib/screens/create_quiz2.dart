@@ -18,7 +18,8 @@ class _CreateQuiz2State extends State<CreateQuiz2> {
   final TextEditingController _option1Controller = TextEditingController();
   final TextEditingController _option2Controller = TextEditingController();
   final TextEditingController _option3Controller = TextEditingController();
-  final TextEditingController _correctAnswerController = TextEditingController();
+  final TextEditingController _correctAnswerController =
+      TextEditingController();
 
   int questionNumber = 1;
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
@@ -33,83 +34,81 @@ class _CreateQuiz2State extends State<CreateQuiz2> {
     _initializeSet(); // Initialize the set path on startup
   }
 
+  Future<void> _saveQuestion() async {
+    if (_validateFields()) {
+      if (currentUser != null && currentSetPath != null) {
+        String userId = currentUser!.uid;
 
-Future<void> _saveQuestion() async {
-  if (_validateFields()) {
-    if (currentUser != null && currentSetPath != null) {
-      String userId = currentUser!.uid;
-
-      // 在当前 set 路径下保存问题
-      await _databaseRef
-          .child('$currentSetPath/Question $questionNumber')
-          .set({
-        'question': _questionController.text.trim(),
-        'option1': _option1Controller.text.trim(),
-        'option2': _option2Controller.text.trim(),
-        'option3': _option3Controller.text.trim(),
-        'correctAnswer': _correctAnswerController.text.trim(),
+        // 在当前 set 路径下保存问题
+        await _databaseRef
+            .child('$currentSetPath/Question $questionNumber')
+            .set({
+          'question': _questionController.text.trim(),
+          'option1': _option1Controller.text.trim(),
+          'option2': _option2Controller.text.trim(),
+          'option3': _option3Controller.text.trim(),
+          'correctAnswer': _correctAnswerController.text.trim(),
           // 记录用户 ID
-      }).then((_) {
-        _clearFields();
-        setState(() {
-          questionNumber++;
+        }).then((_) {
+          _clearFields();
+          setState(() {
+            questionNumber++;
+          });
+        }).catchError((e) {
+          _showToast('Failed to save question: $e');
         });
-      }).catchError((e) {
-        _showToast('Failed to save question: $e');
-      });
-    } else {
-      _showToast('User not logged in or set not initialized.');
-    }
-  } else {
-    _showToast('Please fill in all fields.');
-  }
-}
-
-
-Future<String> _findNextAvailableSet() async {
-  final baseSubjectPath = 'quiz/${widget.category}/${widget.subject}';
-  final DataSnapshot snapshot = await _databaseRef.child(baseSubjectPath).get();
-
-  if (snapshot.exists) {
-    // Find the next available set number by checking existing nodes
-    int setNumber = 1;
-    while (snapshot.child('Set $setNumber').exists) {
-      setNumber++;
-    }
-    // Return the path of the next available set
-    return '$baseSubjectPath/Set $setNumber';
-  } else {
-    // If the directory does not exist, create Set 1
-    return '$baseSubjectPath/Set 1';
-  }
-}
-
-Future<void> _initializeSet() async {
-  if (currentUser != null) {
-    try {
-      // Find the appropriate set path
-      final setPath = await _findNextAvailableSet();
-
-      // Create the new set only if it does not exist
-      final setSnapshot = await _databaseRef.child(setPath).get();
-      if (!setSnapshot.exists) {
-        await _databaseRef.child(setPath).set({
-          'id': setPath,
-          'provider': currentUser!.uid,
-          'approve': false,
-          // Add other initial data as needed
-        });
-
-        setState(() {
-          currentSetPath = setPath; // Update the state with the new path
-        });
+      } else {
+        _showToast('User not logged in or set not initialized.');
       }
-    } catch (e) {
-      _showToast('Failed to initialize set: $e');
+    } else {
+      _showToast('Please fill in all fields.');
     }
   }
-}
 
+  Future<String> _findNextAvailableSet() async {
+    final baseSubjectPath = 'quiz/${widget.category}/${widget.subject}';
+    final DataSnapshot snapshot =
+        await _databaseRef.child(baseSubjectPath).get();
+
+    if (snapshot.exists) {
+      // Find the next available set number by checking existing nodes
+      int setNumber = 1;
+      while (snapshot.child('Set $setNumber').exists) {
+        setNumber++;
+      }
+      // Return the path of the next available set
+      return '$baseSubjectPath/Set $setNumber';
+    } else {
+      // If the directory does not exist, create Set 1
+      return '$baseSubjectPath/Set 1';
+    }
+  }
+
+  Future<void> _initializeSet() async {
+    if (currentUser != null) {
+      try {
+        // Find the appropriate set path
+        final setPath = await _findNextAvailableSet();
+
+        // Create the new set only if it does not exist
+        final setSnapshot = await _databaseRef.child(setPath).get();
+        if (!setSnapshot.exists) {
+          await _databaseRef.child(setPath).set({
+            'id': setPath,
+            'provider': currentUser!.uid,
+            'approve': false,
+            // Add other initial data as needed
+          });
+
+          setState(() {
+            currentSetPath = setPath; // Update the state with the new path
+          });
+        }
+      } catch (e) {
+        _showToast('Failed to initialize set: $e');
+      }
+    }
+  }
 
   bool _validateFields() {
     return _questionController.text.trim().isNotEmpty &&
@@ -151,13 +150,15 @@ Future<void> _initializeSet() async {
                     builder: (BuildContext context) {
                       return AlertDialog(
                         title: Text('Submission Successful'),
-                        content: Text('Your data will be reviewed by the admin.'),
+                        content:
+                            Text('Your data will be reviewed by the admin.'),
                         actions: [
                           TextButton(
                             child: Text('OK'),
                             onPressed: () {
                               Navigator.of(context).pop(); // Close the dialog
-                              Navigator.of(context).pop(); // Pop the CreateQuiz2 page
+                              Navigator.of(context)
+                                  .pop(); // Pop the CreateQuiz2 page
                             },
                           ),
                         ],
@@ -180,7 +181,7 @@ Future<void> _initializeSet() async {
         centerTitle: true,
         title: Text(
           'Question $questionNumber',
-          style: GoogleFonts.poppins(color: Colors.white),
+          style: GoogleFonts.poppins(),
         ),
         leading: IconButton(
           onPressed: () {
@@ -206,17 +207,17 @@ Future<void> _initializeSet() async {
                     controller: _questionController,
                     decoration: InputDecoration(
                       labelText: 'Question',
-                      labelStyle:
-                          TextStyle(fontSize: 14, color: Colors.grey),
+                      labelStyle: TextStyle(fontSize: 14, color: Colors.grey),
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.orange.shade700, width: 2.0),
+                        borderSide: BorderSide(
+                            color: Colors.orange.shade700, width: 2.0),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.grey, width: 1.0),
                       ),
-                      contentPadding: EdgeInsets.symmetric(
-                          horizontal: 12.0, vertical: 8.0),
+                      contentPadding:
+                          EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
                       fillColor: Colors.white,
                       filled: true,
                     ),
@@ -263,8 +264,7 @@ Future<void> _initializeSet() async {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.green,
                                   shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(5)),
+                                      borderRadius: BorderRadius.circular(5)),
                                 ),
                                 onPressed: () {
                                   if (_validateFields()) {
@@ -298,8 +298,7 @@ Future<void> _initializeSet() async {
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.grey,
                                   shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(5)),
+                                      borderRadius: BorderRadius.circular(5)),
                                 ),
                                 onPressed: () {
                                   if (_validateFields()) {
@@ -355,8 +354,7 @@ Future<void> _initializeSet() async {
         enabledBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.grey, width: 1.0),
         ),
-        contentPadding:
-            EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+        contentPadding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
         fillColor: Colors.white,
         filled: true,
       ),
