@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 class PointsTransactionPage extends StatefulWidget {
   @override
@@ -78,16 +79,11 @@ class _PointsTransactionPageState extends State<PointsTransactionPage> {
   }
 
   // Get appropriate icon based on transaction type
-  Widget _getTransactionIcon(String type, String reason) {
-    if (type == 'deduction' && reason.toLowerCase().contains('cash')) {
-      return Icon(Icons.money_off, color: Colors.black54);
-    } else if (type == 'addition' && reason.toLowerCase().contains('top up')) {
-      return Icon(Icons.account_balance_wallet, color: Colors.black54);
-    } else if (reason.toLowerCase().contains('survey')) {
-      return Icon(Icons.poll, color: Colors.black54);
-    } else if (reason.toLowerCase().contains('session') ||
-        reason.toLowerCase().contains('income')) {
-      return Icon(Icons.attach_money, color: Colors.black54);
+  Widget _getTransactionIcon(String type) {
+    if (type == 'deduction') {
+      return Icon(Iconsax.money_send_copy, color: Colors.red);
+    } else if (type == 'addition') {
+      return Icon(Iconsax.money_recive, color: Colors.green);
     } else {
       return Icon(Icons.swap_horiz, color: Colors.black54);
     }
@@ -99,25 +95,6 @@ class _PointsTransactionPageState extends State<PointsTransactionPage> {
       return '+$points pts';
     } else {
       return '-$points pts';
-    }
-  }
-
-  // Get display text for transaction
-  String _getTransactionTitle(Map<String, dynamic> transaction) {
-    String reason = transaction['reason'] ?? '';
-
-    if (reason.toLowerCase().contains('cash out')) {
-      return 'Cash out';
-    } else if (reason.toLowerCase().contains('top up')) {
-      return 'Top up';
-    } else if (reason.toLowerCase().contains('distribute survey')) {
-      return 'Distribute survey';
-    } else if (reason.toLowerCase().contains('do survey')) {
-      return 'Do survey';
-    } else if (reason.toLowerCase().contains('session')) {
-      return 'Session Income';
-    } else {
-      return reason;
     }
   }
 
@@ -207,12 +184,11 @@ class _PointsTransactionPageState extends State<PointsTransactionPage> {
                               var transaction = transactions[index];
                               int points = transaction['points'] ?? 0;
                               String type = transaction['type'] ?? '';
-                              String reason = transaction['reason'] ?? '';
 
                               return ListTile(
-                                leading: _getTransactionIcon(type, reason),
+                                leading: _getTransactionIcon(type),
                                 title: Text(
-                                  _getTransactionTitle(transaction),
+                                  transaction['reason'],
                                   style: GoogleFonts.poppins(
                                     fontWeight: FontWeight.w500,
                                   ),

@@ -8,7 +8,6 @@ import 'package:my_education/models/Teachers.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:my_education/models/class_sharing.dart';
-import 'package:my_education/screens/booking_screen.dart';
 import 'package:my_education/screens/chat_screen.dart';
 import 'package:my_education/screens/edushare_screen.dart';
 import 'package:my_education/screens/event_all.dart';

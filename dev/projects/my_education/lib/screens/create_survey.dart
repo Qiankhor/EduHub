@@ -349,6 +349,16 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                   ),
                 ),
               ),
+              Center(
+                child: Text(
+                  'You will be deducted 50 points for distributing a survey.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             ],
           ),
         ),

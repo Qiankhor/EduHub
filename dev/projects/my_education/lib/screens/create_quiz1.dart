@@ -184,6 +184,16 @@ class _CreateQuiz1State extends State<CreateQuiz1> {
                   ),
                 ),
               ),
+              Center(
+                child: Text(
+                  'You will receive 20 points if the quiz is approved by the admin.',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
             ],
           ),
         ),

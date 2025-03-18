@@ -14,7 +14,7 @@ class _RobotChatPageState extends State<RobotChatPage> {
   final List<Map<String, String>> _messages = [];
   GenerativeModel? _model;
   bool _isLoading = false;
-  bool _showFaq = true; // Initially show FAQ
+  bool _showFaq = false; // Initially show FAQ
 
   // FAQ data
   final List<Map<String, String>> _faqItems = [

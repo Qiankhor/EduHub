@@ -49,7 +49,7 @@ class _RegisterSharingSessionPageState
       bool isTime = false,
       bool isPoints = false}) {
     return Container(
-      margin: EdgeInsets.fromLTRB(0, 0, 0, 24),
+      margin: EdgeInsets.fromLTRB(0, 0, 0, 15),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
       ),
@@ -372,128 +372,109 @@ class _RegisterSharingSessionPageState
           icon: Icon(Icons.arrow_back),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          padding: EdgeInsets.fromLTRB(16, 94, 17, 70),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildTextField(_nameController, 'Session Name'),
-              _buildTextField(_calendarController, 'Date', isCalendar: true),
-              _buildTextField(_startTimeController, 'Start Time', isTime: true),
-              _buildTextField(_endTimeController, 'End Time', isTime: true),
-              _buildTextField(_descriptionController, 'Description',
-                  isMultiline: true),
-              _buildTextField(_pointsController, 'Points requested per person',
-                  isPoints: true),
-              Container(
-                  margin: EdgeInsets.fromLTRB(0, 0, 0, 35),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Color(0xFF535CE8)),
-                    borderRadius: BorderRadius.circular(8),
-                    color: Color(0x80F1F2FD),
-                  ),
-                  child: Container(
-                    padding: EdgeInsets.fromLTRB(0, 7, 0, 7),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 44,
-                          height: 44,
-                          child:
-                              SvgPicture.asset('vectors/cloud_upload_1_x2.svg'),
-                        ),
-                        SizedBox(
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: constraints.maxHeight),
+              child: IntrinsicHeight(
+                child: Column(
+                  children: [
+                    Spacer(), // Pushes content to center
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(15, 15, 15, 15),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildTextField(_nameController, 'Session Name'),
+                          _buildTextField(_calendarController, 'Date',
+                              isCalendar: true),
+                          _buildTextField(_startTimeController, 'Start Time',
+                              isTime: true),
+                          _buildTextField(_endTimeController, 'End Time',
+                              isTime: true),
+                          _buildTextField(_descriptionController, 'Description',
+                              isMultiline: true),
+                          _buildTextField(
+                              _pointsController, 'Points requested per person',
+                              isPoints: true),
+                          _buildFileUploadButton('Proof of achievement in PDF',
+                              _fileName, _pickPdf),
+                          _buildFileUploadButton('Achievement-related photo',
+                              _photoFileName, _pickPhoto),
+                          SizedBox(height: 15),
+                          SizedBox(
                             width:
-                                8), // Add some spacing between the icon and text
-                        Expanded(
-                          // Make the TextButton take up the remaining space
-                          child: TextButton(
-                            onPressed: _pickPdf,
-                            child: Text(
-                              _fileName.isEmpty
-                                  ? 'Proof of achievement in PDF'
-                                  : 'Selected File: $_fileName',
-                              overflow: TextOverflow
-                                  .ellipsis, // Truncate text with ellipsis
-                              maxLines: 1, // Ensure the text is a single line
+                                double.infinity, // Make the button expand fully
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange.shade700,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                              ),
+                              onPressed: _saveEvent,
+                              child: Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
+                                child: Text(
+                                  'Submit',
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 14,
+                                    height: 1.4,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  )),
-              Container(
-                  margin: EdgeInsets.fromLTRB(0, 0, 0, 35),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Color(0xFF535CE8)),
-                    borderRadius: BorderRadius.circular(8),
-                    color: Color(0x80F1F2FD),
-                  ),
-                  child: Container(
-                    padding: EdgeInsets.fromLTRB(0, 7, 0, 7),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 44,
-                          height: 44,
-                          child:
-                              SvgPicture.asset('vectors/cloud_upload_1_x2.svg'),
-                        ),
-                        SizedBox(
-                            width:
-                                8), // Add some spacing between the icon and text
-                        Expanded(
-                          // Make the TextButton take up the remaining space
-                          child: TextButton(
-                            onPressed: _pickPhoto,
-                            child: Text(
-                              _photoFileName.isEmpty
-                                  ? 'Achievement-related photo'
-                                  : 'Selected Photo: $_photoFileName',
-                              overflow: TextOverflow
-                                  .ellipsis, // Truncate text with ellipsis
-                              maxLines: 1, // Ensure the text is a single line
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )),
-              Container(
-                margin: EdgeInsets.fromLTRB(0, 32, 0, 15),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange.shade700,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5)),
-                  ),
-                  onPressed: _saveEvent,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 12, bottom: 12),
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Submit',
-                        style: GoogleFonts.getFont(
-                          'Poppins',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                          height: 1.4,
-                          color: Color(0xFFFFFFFF),
-                        ),
+                        ],
                       ),
                     ),
-                  ),
+                    Spacer(), // Pushes content to center
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFileUploadButton(
+      String label, String fileName, VoidCallback onPressed) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        border: Border.all(color: Color(0xFF535CE8)),
+        borderRadius: BorderRadius.circular(8),
+        color: Color(0x80F1F2FD),
+      ),
+      child: Padding(
+        padding: EdgeInsets.all(10),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            SizedBox(
+              width: 44,
+              height: 44,
+              child: SvgPicture.asset('vectors/cloud_upload_1_x2.svg'),
+            ),
+            SizedBox(width: 8),
+            Expanded(
+              child: TextButton(
+                onPressed: onPressed,
+                child: Text(
+                  fileName.isEmpty ? label : 'Selected: $fileName',
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

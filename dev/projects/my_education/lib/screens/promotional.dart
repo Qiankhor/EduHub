@@ -308,84 +308,106 @@ class _PromotionalPageState extends State<PromotionalPage> {
           icon: Icon(Icons.arrow_back),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Container(
-          padding: EdgeInsets.fromLTRB(16, 94, 17, 70),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildTextField(_eventNameController, 'Event Name'),
-              _buildTextField(_targetAudienceController, 'Target Audience'),
-              _buildTextField(_participationFeeController, 'Participation Fee'),
-              _buildTextField(_urlController, 'Activity Details (URL)'),
-              Container(
-                  margin: EdgeInsets.fromLTRB(0, 0, 0, 35),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: Color(0xFF535CE8)),
-                    borderRadius: BorderRadius.circular(8),
-                    color: Color(0x80F1F2FD),
-                  ),
-                  child: Container(
-                    padding: EdgeInsets.fromLTRB(0, 7, 0, 7),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          width: 44,
-                          height: 44,
-                          child:
-                              SvgPicture.asset('vectors/cloud_upload_1_x2.svg'),
+      body: Center(
+        // Ensures vertical centering
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height -
+                  kToolbarHeight, // Adjust for AppBar
+            ),
+            child: IntrinsicHeight(
+              child: Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 15),
+                  child: Column(
+                    mainAxisAlignment:
+                        MainAxisAlignment.center, // Center content
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      _buildTextField(_eventNameController, 'Event Name'),
+                      _buildTextField(
+                          _targetAudienceController, 'Target Audience'),
+                      _buildTextField(
+                          _participationFeeController, 'Participation Fee'),
+                      _buildTextField(_urlController, 'Activity Details (URL)'),
+                      Container(
+                        margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Color(0xFF535CE8)),
+                          borderRadius: BorderRadius.circular(8),
+                          color: Color(0x80F1F2FD),
                         ),
-                        SizedBox(
-                            width:
-                                8), // Add some spacing between the icon and text
-                        Expanded(
-                          // Make the TextButton take up the remaining space
-                          child: TextButton(
-                            onPressed: _pickImage,
+                        child: Container(
+                          padding: EdgeInsets.fromLTRB(0, 7, 0, 7),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 44,
+                                height: 44,
+                                child: SvgPicture.asset(
+                                    'vectors/cloud_upload_1_x2.svg'),
+                              ),
+                              SizedBox(width: 8), // Spacing
+                              Expanded(
+                                child: TextButton(
+                                  onPressed: _pickImage,
+                                  child: Text(
+                                    _imageName.isEmpty
+                                        ? 'Upload your event poster'
+                                        : 'Selected Image: $_imageName',
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 30),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange.shade700,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                        ),
+                        onPressed: _saveEvent,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 12, bottom: 12),
+                          child: Align(
+                            alignment: Alignment.center,
                             child: Text(
-                              _imageName.isEmpty
-                                  ? 'Upload your event poster'
-                                  : 'Selected Image: $_imageName',
-                              overflow: TextOverflow
-                                  .ellipsis, // Truncate text with ellipsis
-                              maxLines: 1, // Ensure the text is a single line
+                              'Submit',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                                height: 1.4,
+                                color: Color(0xFFFFFFFF),
+                              ),
                             ),
                           ),
                         ),
-                      ],
-                    ),
-                  )),
-              Container(
-                margin: EdgeInsets.fromLTRB(0, 32, 0, 15),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange.shade700,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(5)),
-                  ),
-                  onPressed: _saveEvent,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 12, bottom: 12),
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: Text(
-                        'Submit',
-                        style: GoogleFonts.getFont(
-                          'Poppins',
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                          height: 1.4,
-                          color: Color(0xFFFFFFFF),
+                      ),
+                      SizedBox(height: 10),
+                      Center(
+                        child: Text(
+                          'You will be deducted 100 points for promoting an event.',
+                          style: GoogleFonts.poppins(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
-            ],
+            ),
           ),
         ),
       ),
