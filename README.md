@@ -39,4 +39,4 @@ These instructions will help you set up the EduHub app on your local development
 
    ```bash
    git clone https://github.com/Qiankhor/EduHub.git
-   cd my_education
+   cd dev/projects/my_education
